@@ -190,7 +190,7 @@
 
     async function loadQuestions() {
       try {
-        const res = await fetch("questions_clean.json");
+        const res = await fetch("https://winter-darkness-2c14.herseydenbiraz4k.workers.dev/");
         if (!res.ok) throw new Error("Suallar tapılmadı: " + res.status);
         questions = await res.json();
         renderQuiz();
