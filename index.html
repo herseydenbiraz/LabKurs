@@ -76,6 +76,8 @@ let questions = [];
 const PER_PAGE = 10;
 const BLOCK_SIZE = 100;
 let currentPageIndex = 0;
+  let scrollTarget = null;
+
 
 async function loadQuestions(){
   try {
@@ -106,6 +108,7 @@ function renderQuiz(){
     const q=questions[i];
     const card=document.createElement("div");
     card.className="card";
+    card.id = "q-" + (i+1);
 
     const qtext=document.createElement("div");
     qtext.className="q-text";
@@ -167,28 +170,26 @@ function nextPage(){
 function goToPage(p){currentPageIndex=p;renderQuiz();}
 
 function goToQuestion(){
-  const val = parseInt(el("searchInput").value);
+  const val = parseInt(document.getElementById("searchInput").value);
   const total = questions.length;
+
   if(!val || val < 1 || val > total){
     alert("Düzgün sual nömrəsi daxil edin!");
     return;
   }
 
-  // səhifəni tap
   const pageIdx = Math.floor((val-1) / PER_PAGE);
   currentPageIndex = pageIdx;
+
+  // əvvəlcə səhifəni render et
   renderQuiz();
 
-  // sualı tap və scroll et
-  setTimeout(()=>{
-    const area = el("quizArea");
-    const card = area.querySelectorAll(".card")[ (val-1) % PER_PAGE ];
-    if(card){
-      card.scrollIntoView({behavior:"smooth", block:"center"});
-      card.style.boxShadow = "0 0 15px 3px #2b6cb0";
-      setTimeout(()=> card.style.boxShadow="", 2000);
-    }
-  }, 200);
+  // sonra həmin suala scroll et
+  const targetId = "q-" + val;
+  const el = document.getElementById(targetId);
+  if(el){
+    el.scrollIntoView({behavior:"smooth", block:"center"});
+  }
 }
 
 /* === Tree Pagination === */
