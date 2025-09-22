@@ -165,6 +165,7 @@ function nextPage(){
   if(currentPageIndex<totalPages-1){currentPageIndex++;renderQuiz();}
 }
 function goToPage(p){currentPageIndex=p;renderQuiz();}
+
 function goToQuestion(){
   const val = parseInt(el("searchInput").value);
   const total = questions.length;
@@ -172,9 +173,22 @@ function goToQuestion(){
     alert("Düzgün sual nömrəsi daxil edin!");
     return;
   }
+
+  // səhifəni tap
   const pageIdx = Math.floor((val-1) / PER_PAGE);
   currentPageIndex = pageIdx;
   renderQuiz();
+
+  // sualı tap və scroll et
+  setTimeout(()=>{
+    const area = el("quizArea");
+    const card = area.querySelectorAll(".card")[ (val-1) % PER_PAGE ];
+    if(card){
+      card.scrollIntoView({behavior:"smooth", block:"center"});
+      card.style.boxShadow = "0 0 15px 3px #2b6cb0";
+      setTimeout(()=> card.style.boxShadow="", 2000);
+    }
+  }, 200);
 }
 
 /* === Tree Pagination === */
@@ -240,7 +254,9 @@ function renderTree(){
 /* === Copy / sağ klik bloklama === */
 document.addEventListener("contextmenu", e => e.preventDefault());
 document.addEventListener("copy", e => e.preventDefault());
-  document.getElementById("searchInput").addEventListener("keydown", function(e){
+
+/* === Enter basanda da Get işləsin === */
+document.getElementById("searchInput").addEventListener("keydown", function(e){
   if(e.key === "Enter"){
     goToQuestion();
   }
