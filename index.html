@@ -240,6 +240,11 @@ function renderTree(){
 /* === Copy / sağ klik bloklama === */
 document.addEventListener("contextmenu", e => e.preventDefault());
 document.addEventListener("copy", e => e.preventDefault());
+  document.getElementById("searchInput").addEventListener("keydown", function(e){
+  if(e.key === "Enter"){
+    goToQuestion();
+  }
+});
 </script>
 </body>
 </html>
