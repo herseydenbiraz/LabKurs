@@ -32,15 +32,20 @@
     .opt.correct{background:#008000;color:#fff;border-color:#008000;}
     .opt.wrong{background:#cc0000;color:#fff;border-color:#cc0000;}
     .letter{font-weight:bold;margin-right:10px;width:22px;text-align:center;}
-    .footer-nav{display:flex;justify-content:center;align-items:center;gap:12px;margin-top:20px;flex-wrap:wrap;}
-    .nav{display:flex;gap:10px;}
+    .footer-nav{margin-top:20px;}
+    .tree{display:flex;flex-direction:column;gap:8px;align-items:flex-start;}
+    .block-header{cursor:pointer;padding:6px 10px;border:1px solid #ccc;border-radius:6px;background:#fff;display:flex;align-items:center;gap:6px;}
+    .block-header:hover{background:#eef;}
+    .arrow{font-size:12px;width:16px;text-align:center;}
+    .sub-list{margin-left:25px;margin-top:6px;display:none;flex-wrap:wrap;gap:6px;}
+    .sub-list.show{display:flex;}
+    .sub-btn{padding:4px 10px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;}
+    .sub-btn:hover{background:#eef;}
+    .sub-btn.active{background:#2b6cb0;color:#fff;border-color:#2b6cb0;}
     .btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-weight:600;}
     .btn.prev{background:#2b6cb0;color:#fff;}
     .btn.next{background:#ffdd57;color:#111;}
     .btn:disabled{opacity:.5;cursor:not-allowed;}
-    .page-buttons{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
-    .page-btn{padding:6px 12px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;}
-    .page-btn.active{background:#2b6cb0;color:#fff;border-color:#2b6cb0;}
   </style>
 </head>
 <body>
@@ -58,17 +63,18 @@
   <div id="quizArea"></div>
 
   <div class="footer-nav">
-    <div class="nav">
+    <div style="display:flex;justify-content:center;gap:10px;margin-bottom:10px;">
       <button id="prevBtn" class="btn prev" onclick="prevPage()">Əvvəlki</button>
       <button id="nextBtn" class="btn next" onclick="nextPage()">Sonrakı</button>
     </div>
-    <div class="page-buttons" id="pageButtons"></div>
+    <div id="tree" class="tree"></div>
   </div>
 </div>  
 
 <script>
 let questions = [];
 const PER_PAGE = 10;
+const BLOCK_SIZE = 100;
 let currentPageIndex = 0;
 
 async function loadQuestions(){
@@ -77,6 +83,7 @@ async function loadQuestions(){
     if (!res.ok) throw new Error("Suallar tapılmadı: " + res.status);
     questions = await res.json();
     renderQuiz();
+    renderTree();
   } catch(err){
     document.getElementById("quizArea").innerHTML = "Xəta: " + err.message;
     console.error(err);
@@ -109,7 +116,6 @@ function renderQuiz(){
     q.options.forEach((txt,idx)=>{
       const opt=document.createElement("div");
       opt.className="opt";
-      opt.dataset.optIndex=idx;
       opt.onclick=()=>onOptionClick(q,opt,idx);
 
       const letter=document.createElement("div");
@@ -129,9 +135,9 @@ function renderQuiz(){
     area.appendChild(card);
   }
 
-  renderPageButtons(total,totalPages);
   updateControls(total,totalPages);
   window.scrollTo({top:0,behavior:"smooth"});
+  renderTree(); // hər dəfə səhifə dəyişəndə ağac yenilənsin
 }
 
 function onOptionClick(q,optElement,idx){
@@ -144,21 +150,6 @@ function onOptionClick(q,optElement,idx){
     allOpts.forEach(o=>o.classList.add("disabled"));
   } else {
     optElement.classList.add("wrong","disabled");
-  }
-}
-
-function renderPageButtons(total,totalPages){
-  const pb=el("pageButtons");
-  pb.innerHTML="";
-  for(let p=0;p<totalPages;p++){
-    const startQ=p*PER_PAGE+1;
-    const endQ=Math.min((p+1)*PER_PAGE,total);
-    const b=document.createElement("button");
-    b.className="page-btn";
-    b.textContent=`${startQ}-${endQ}`;
-    if(p===currentPageIndex) b.classList.add("active");
-    b.onclick=()=>goToPage(p);
-    pb.appendChild(b);
   }
 }
 
@@ -175,7 +166,7 @@ function nextPage(){
 }
 function goToPage(p){currentPageIndex=p;renderQuiz();}
 function goToQuestion(){
-  const val = parseInt(document.getElementById("searchInput").value);
+  const val = parseInt(el("searchInput").value);
   const total = questions.length;
   if(!val || val < 1 || val > total){
     alert("Düzgün sual nömrəsi daxil edin!");
@@ -184,6 +175,66 @@ function goToQuestion(){
   const pageIdx = Math.floor((val-1) / PER_PAGE);
   currentPageIndex = pageIdx;
   renderQuiz();
+}
+
+/* === Tree Pagination === */
+function renderTree(){
+  const total = questions.length;
+  const totalPages = Math.ceil(total / PER_PAGE);
+  const tree = el("tree");
+  tree.innerHTML = "";
+
+  const totalBlocks = Math.ceil(total / BLOCK_SIZE);
+
+  for(let b=0; b<totalBlocks; b++){
+    const startB = b*BLOCK_SIZE+1;
+    const endB = Math.min((b+1)*BLOCK_SIZE, total);
+
+    const blockDiv = document.createElement("div");
+    const header = document.createElement("div");
+    header.className = "block-header";
+
+    const arrow = document.createElement("span");
+    arrow.className = "arrow";
+    arrow.textContent = "▶";
+
+    const title = document.createElement("span");
+    title.textContent = `${startB}-${endB}`;
+
+    header.appendChild(arrow);
+    header.appendChild(title);
+    blockDiv.appendChild(header);
+
+    const sub = document.createElement("div");
+    sub.className = "sub-list";
+
+    for(let p=startB; p<=endB; p+=PER_PAGE){
+      const startP = p;
+      const endP = Math.min(p+PER_PAGE-1,endB);
+      const pageIndex = Math.floor((p-1)/PER_PAGE);
+
+      const btn = document.createElement("button");
+      btn.className = "sub-btn";
+      btn.textContent = `${startP}-${endP}`;
+
+      if(pageIndex === currentPageIndex){
+        btn.classList.add("active");
+        sub.classList.add("show");
+        arrow.textContent = "▼";
+      }
+
+      btn.onclick = ()=>{goToPage(pageIndex)};
+      sub.appendChild(btn);
+    }
+
+    header.onclick = ()=>{
+      sub.classList.toggle("show");
+      arrow.textContent = sub.classList.contains("show") ? "▼" : "▶";
+    };
+
+    blockDiv.appendChild(sub);
+    tree.appendChild(blockDiv);
+  }
 }
 
 /* === Copy / sağ klik bloklama === */
