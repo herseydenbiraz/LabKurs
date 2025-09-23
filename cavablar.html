@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>📘 Suallar — Cavablarla</title>
+  <title>📒 Suallar — Cavablarla</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -18,9 +18,77 @@
     }
     .container{max-width:900px;margin:0 auto;}
     header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
-    .title{font-size:22px;font-weight:700;color:#2b6cb0;}
-    .home-btn{background:#2b6cb0;padding:6px 12px;border-radius:6px;font-weight:700;color:#fff;text-decoration:none;}
-    .card{background:#fff;padding:15px;margin-bottom:15px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+    .title{font-size:22px;font-weight:700;color:#380070;}
+
+
+.nav-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.nav-buttons a {
+  padding: 10px 16px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  transition: 0.2s;
+  min-width: 120px;
+}
+
+.nav-buttons a.blue {
+  background: #ffb703;
+  color: #111;
+}
+
+.nav-buttons a.red {
+  background: #00d9d2;
+  color: #111;
+}
+
+.nav-buttons a:hover {
+  opacity: 0.9;
+}
+
+/* 📱 Mobil üçün */
+@media (max-width: 600px) {
+  .header {
+    flex-direction: column;
+    align-items: center;
+  }
+  .nav-buttons {
+    flex-direction: column;
+    align-items: center; /* düymələr ortada */
+    width: auto;
+  }
+  .nav-buttons a {
+    width: auto;   /* tam ekran deyil */
+    min-width: 140px; /* kiçik ölçü */
+  }
+}
+
+
+
+#quizArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* sual kartlarını mərkəzləşdirir */
+}
+
+.card {
+  background: #fff;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  border: 1px solid #2b6cb0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+
+  width: 90%;        /* ekranın 90%-i qədər */
+  max-width: 700px;  /* ən çox 700px olsun */
+}
+
+
     .q-text{font-size:18px;font-weight:600;margin-bottom:10px;}
     .options{display:flex;flex-direction:column;gap:6px;}
     .opt{display:flex;align-items:center;padding:10px;border-radius:8px;border:1px solid #ccc;background:#f9f9f9;cursor:pointer;transition:.2s;}
@@ -51,14 +119,17 @@
   <button onclick="goToQuestion()">Get</button>
 </div>
 
+
 <div class="container">
-  <header>
-    <div class="title">📘 Suallar (Cavablarla)</div>
-    <div style="display:flex;gap:10px;">
-      <a href="index.html" class="home-btn">Ana Səhifə</a>
-      <a href="imtahan.html" class="home-btn" style="background:#ff6666;">İmtahan</a>
-    </div>
+  <header class="header">
+    <div class="title">📒 Suallar (Cavablarla)</div>
+    <nav class="nav-buttons">
+      <a href="index.html" class="blue">Ana Səhifə</a>
+      <a href="imtahan.html" class="red">İmtahan</a>
+    </nav>
   </header>
+</div>
+
 
   <div id="quizArea"></div>
 
