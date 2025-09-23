@@ -54,6 +54,14 @@
   background: #dc3545;
   color: #fff;
 }
+.nav-buttons a.green {
+  background: #28a745; /* Yaşıl */
+  color: #fff;
+}
+
+.nav-buttons a.green:hover {
+  background: #218838; /* Daha tünd yaşıl hover */
+}
 
 .nav-buttons a:hover {
   opacity: 0.9;
@@ -171,6 +179,11 @@ in-right:10px;width:22px;text-align:center;}
     <nav class="nav-buttons">
       <a href="cavablar.html" class="blue">Suallar (Cavablarla)</a>
       <a href="imtahan.html" class="red">İmtahan</a>
+      <a href="mailto:dribrahimov3@gmail.com" class="green">📧 Əlaqə (Email)</a>
+    </nav>
+  </header>
+</div>
+
     </nav>
   </header>
 </div>
@@ -194,7 +207,7 @@ let currentPageIndex = 0;
 
 async function loadQuestions(){
   try {
-    const res = await fetch("https://winter-darkness-2c14.herseydenbiraz4k.workers.dev");
+    const res = await fetch("https://winter-darkness-2c14.herseydenbiraz4k.workers.dev/");
     if (!res.ok) throw new Error("Suallar tapılmadı: " + res.status);
     questions = await res.json();
     renderQuiz();
@@ -374,12 +387,14 @@ function renderTree(){
   background:#fff;
   border-top:2px dashed #ccc;
   color:#333;
-  font-size:14px;">
+  font-size:14px;
+">
   <span style="opacity:0.8;">Built & Designed by</span>  
   <strong style="color:#2b6cb0;">Dr. Ibrahimov</strong> ⚡  
   <div style="margin-top:6px; font-size:12px; opacity:0.6;">
     © 2025 — Laboratory Course
   </div>
-</footer>
-</body>
+  
+  
+</footer></body>
 </html>
