@@ -45,8 +45,11 @@
 
 <script>
 let questions = [];
+let examQuestions = [];
 let userAnswers = {};
 const PER_PAGE = 10;
+const EXAM_COUNT = 60;
+const PASS_SCORE = 40;
 let currentPage = 0;
 
 async function loadQuestions(){
@@ -55,10 +58,13 @@ async function loadQuestions(){
     if(!res.ok) throw new Error("Suallar tapılmadı: " + res.status);
     questions = await res.json();
 
-    // sual mətninin əvvəlindəki "123. " kimi nömrələri sil
-    questions = questions.map(q => ({
+    // 60 təsadüfi sual seç
+    examQuestions = pickRandom(questions, EXAM_COUNT);
+
+    // başındakı "123. " nömrələri sil
+    examQuestions = examQuestions.map((q,idx) => ({
       ...q,
-      text: q.text.replace(/^\d+\.\s*/, "")
+      text: (idx+1)+". " + q.text.replace(/^\d+\.\s*/, "")
     }));
 
     renderQuiz();
@@ -69,14 +75,19 @@ async function loadQuestions(){
 }
 loadQuestions();
 
+function pickRandom(arr,n){
+  const shuffled=[...arr].sort(()=>0.5-Math.random());
+  return shuffled.slice(0,n);
+}
+
 function renderQuiz(){
   const area=document.getElementById("quizArea");
   area.innerHTML="";
   const start=currentPage*PER_PAGE;
-  const end=Math.min(start+PER_PAGE, questions.length);
+  const end=Math.min(start+PER_PAGE, examQuestions.length);
 
   for(let i=start;i<end;i++){
-    const q=questions[i];
+    const q=examQuestions[i];
     const card=document.createElement("div");
     card.className="card";
 
@@ -114,7 +125,7 @@ function renderQuiz(){
 }
 
 function onAnswerClick(qIndex,idx,optElement){
-  const q=questions[qIndex];
+  const q=examQuestions[qIndex];
   const card=optElement.closest(".card");
   const allOpts=card.querySelectorAll(".opt");
 
@@ -136,18 +147,23 @@ function onAnswerClick(qIndex,idx,optElement){
 
 function updateControls(){
   el("prevBtn").disabled=(currentPage===0);
-  el("nextBtn").disabled=(currentPage>=Math.ceil(questions.length/PER_PAGE)-1);
+  el("nextBtn").disabled=(currentPage>=Math.ceil(examQuestions.length/PER_PAGE)-1);
 }
 
 function prevPage(){if(currentPage>0){currentPage--;renderQuiz();}}
-function nextPage(){if(currentPage<Math.ceil(questions.length/PER_PAGE)-1){currentPage++;renderQuiz();}}
+function nextPage(){if(currentPage<Math.ceil(examQuestions.length/PER_PAGE)-1){currentPage++;renderQuiz();}}
 
 function finishExam(){
   let correctCount=0;
-  questions.forEach((q,qi)=>{
+  examQuestions.forEach((q,qi)=>{
     if(userAnswers[qi]===q.answer) correctCount++;
   });
-  alert("Nəticə: "+correctCount+" / "+questions.length);
+
+  const passed = correctCount >= PASS_SCORE;
+  alert(
+    "Nəticə: "+correctCount+" / "+examQuestions.length+"\n" +
+    (passed ? "✅ Keçdiniz!" : "❌ Keçmədiniz!")
+  );
 }
 
 function el(id){return document.getElementById(id)}
@@ -157,4 +173,20 @@ document.addEventListener("contextmenu", e => e.preventDefault());
 document.addEventListener("copy", e => e.preventDefault());
 </script>
 </body>
+  <footer style="
+  margin-top:100px;
+  padding:18px;
+  text-align:center;
+  font-family:'Trebuchet MS', sans-serif;
+  background:#fff;
+  border-top:2px dashed #ccc;
+  color:#333;
+  font-size:14px;
+">
+  <span style="opacity:0.8;">Built & Designed by</span>  
+  <strong style="color:#2b6cb0;">Dr. Ibrahimov</strong> ⚡  
+  <div style="margin-top:6px; font-size:12px; opacity:0.6;">
+    © 2025 — Laboratory Course
+  </div>
+</footer>
 </html>
