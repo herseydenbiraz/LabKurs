@@ -17,14 +17,11 @@
       user-select: none;
     }
   .container {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 0 10px;
+  max-width:900px;margin:0 auto;
 }
 
-.header {
-  display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;
-}
+    .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+
 
 .title {
   font-size: 22px;
@@ -78,17 +75,71 @@
     min-width: 140px; /* kiçik ölçü */
   }
 }
-
+#quizArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* sual kartlarını mərkəzləşdirir */
 }
-}    .card{background:#fff;padding:15px;margin-bottom:15px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
-    .q-text{font-size:18px;font-weight:600;margin-bottom:10px;}
-    .options{display:flex;flex-direction:column;gap:6px;}
-    .opt{display:flex;align-items:center;padding:10px;border-radius:8px;border:1px solid #ccc;background:#f9f9f9;cursor:pointer;transition:.2s;}
-    .opt:hover{background:#eef;}
-    .opt.disabled{cursor:not-allowed;opacity:.8;}
-    .opt.correct{background:#008000;color:#fff;border-color:#008000;}
-    .opt.wrong{background:#cc0000;color:#fff;border-color:#cc0000;}
-    .letter{font-weight:bold;margin-right:10px;width:22px;text-align:center;}
+
+.card {
+  background: #fff;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  border: 1px solid #2b6cb0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+
+  width: 90%;        /* ekranın 90%-i qədər */
+  max-width: 700px;  /* ən çox 700px olsun */
+}
+
+
+.options {
+  display: flex;
+  flex-direction: column; /* variantlar alt-alta */
+  gap: 8px; /* aralarında məsafə */
+  margin-top: 10px;
+}
+
+.opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;  /* hərf ilə mətn arasında məsafə */
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #f9f9f9;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.opt:hover {
+  background: #eef;
+}
+
+.opt.disabled {
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.opt.correct {
+  background: #008000;
+  color: #fff;
+  border-color: #008000;
+}
+
+.opt.wrong {
+  background: #cc0000;
+  color: #fff;
+  border-color: #cc0000;
+}
+
+.letter {
+  font-weight: bold;
+  width: 22px;
+  text-align: center;
+}
+in-right:10px;width:22px;text-align:center;}
     .footer-nav{margin-top:20px;}
     .tree{display:flex;flex-direction:column;gap:8px;align-items:flex-start;}
     .block-header{cursor:pointer;padding:6px 10px;border:1px solid #ccc;border-radius:6px;background:#fff;display:flex;align-items:center;gap:6px;}
@@ -140,7 +191,7 @@ let currentPageIndex = 0;
 
 async function loadQuestions(){
   try {
-    const res = await fetch("https://winter-darkness-2c14.herseydenbiraz4k.workers.dev/");
+    const res = await fetch("https://winter-darkness-2c14.herseydenbiraz4k.workers.dev");
     if (!res.ok) throw new Error("Suallar tapılmadı: " + res.status);
     questions = await res.json();
     renderQuiz();
