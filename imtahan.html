@@ -8,7 +8,19 @@
     body {font-family: Arial, sans-serif; background:#f6f8fb; margin:0; padding:20px; color:#111;}
     .container{max-width:900px;margin:0 auto;}
     header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
-    .reload-btn{background:#cc0000;padding:6px 12px;border-radius:6px;font-weight:700;color:#fff;text-decoration:none;cursor:pointer;}
+    .reload-btn{
+  background:#cc0000;
+  padding:6px 14px;
+  border-radius:6px;
+  font-weight:700;
+  color:#fff;
+  border:none;          /* əlavə et */
+  cursor:pointer;
+  font-size:14px;
+}
+.reload-btn:hover{
+  background:#a80000;
+}
     .home-btn{background:#2b6cb0;padding:6px 12px;border-radius:6px;font-weight:700;color:#fff;text-decoration:none;}
     .card{background:#fff;padding:15px;margin-bottom:15px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
     .q-text{font-size:18px;font-weight:600;margin-bottom:10px;}
@@ -30,9 +42,9 @@
 <body>
 <div class="container">
   <header>
-    <button class="reload-btn" onclick="restartExam()">İmtahanı Yenilə</button>
-    <a href="index.html" class="home-btn">Ana Səhifə</a>
-  </header>
+  <button class="reload-btn" onclick="restartExam()">İmtahanı Yenilə</button>
+  <a href="index.html" class="home-btn">Ana Səhifə</a>
+</header>
 
   <div id="quizArea"></div>
 
