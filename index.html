@@ -100,6 +100,8 @@
   gap: 8px; /* aralarında məsafə */
   margin-top: 10px;
 }
+    .q-text{font-size:18px;font-weight:600;margin-bottom:10px;}
+
 
 .opt {
   display: flex;
@@ -140,6 +142,7 @@
   text-align: center;
 }
 in-right:10px;width:22px;text-align:center;}
+
     .footer-nav{margin-top:20px;}
     .tree{display:flex;flex-direction:column;gap:8px;align-items:flex-start;}
     .block-header{cursor:pointer;padding:6px 10px;border:1px solid #ccc;border-radius:6px;background:#fff;display:flex;align-items:center;gap:6px;}
@@ -191,7 +194,7 @@ let currentPageIndex = 0;
 
 async function loadQuestions(){
   try {
-    const res = await fetch("https://winter-darkness-2c14.herseydenbiraz4k.workers.dev");
+    const res = await fetch("quetions.json");
     if (!res.ok) throw new Error("Suallar tapılmadı: " + res.status);
     questions = await res.json();
     renderQuiz();
