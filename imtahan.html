@@ -5,156 +5,156 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>İmtahan — Laboratoriya Kursu</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f6f8fb;
-      margin: 0;
-      padding: 20px;
-      color: #111;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-    }
-
+    body {font-family: Arial, sans-serif; background:#f6f8fb; margin:0; padding:20px; color:#111;}
     .container{max-width:900px;margin:0 auto;}
     header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
     .title{font-size:22px;font-weight:700;}
-    .exam-card{background:#fff;padding:15px;margin-bottom:15px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
-    .exam-qtext{font-size:18px;font-weight:600;margin-bottom:10px;}
-    .exam-options{display:flex;flex-direction:column;gap:6px;}
-    .exam-opt{display:flex;align-items:center;padding:10px;border-radius:8px;border:1px solid #ccc;background:#f9f9f9;cursor:pointer;transition:.2s;}
-    .exam-opt:hover{background:#eef;}
-    .exam-opt.selected{background:#eef6ff;border-color:#2b6cb0;}
+    .course-badge{background:#2b6cb0;padding:6px 12px;border-radius:6px;font-weight:700;color:#fff;}
+    .card{background:#fff;padding:15px;margin-bottom:15px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+    .q-text{font-size:18px;font-weight:600;margin-bottom:10px;}
+    .options{display:flex;flex-direction:column;gap:6px;}
+    .opt{display:flex;align-items:center;padding:10px;border-radius:8px;border:1px solid #ccc;background:#f9f9f9;cursor:pointer;transition:.2s;}
+    .opt:hover{background:#eef;}
+    .opt.disabled{cursor:not-allowed;opacity:.8;}
+    .opt.correct{background:#008000;color:#fff;border-color:#008000;}
+    .opt.wrong{background:#cc0000;color:#fff;border-color:#cc0000;}
     .letter{font-weight:bold;margin-right:10px;width:22px;text-align:center;}
-    .exam-controls{display:flex;justify-content:space-between;align-items:center;margin-top:12px;}
-    .exam-result{text-align:center;font-size:18px;padding:20px;}
+    .footer-nav{margin-top:20px;text-align:center;}
     .btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-weight:600;}
     .btn.prev{background:#2b6cb0;color:#fff;}
     .btn.next{background:#ffdd57;color:#111;}
+    .btn.finish{background:#ff6666;color:#fff;}
+    .btn:disabled{opacity:.5;cursor:not-allowed;}
   </style>
 </head>
 <body>
 <div class="container">
   <header>
-    <div class="title">🧪 İmtahan</div>
+    <div class="title">İmtahan</div>
     <div class="course-badge">Laboratoriya Kursu</div>
   </header>
 
-  <div id="examArea"></div>
+  <div id="quizArea"></div>
+
+  <div class="footer-nav">
+    <button id="prevBtn" class="btn prev" onclick="prevPage()">Əvvəlki</button>
+    <button id="nextBtn" class="btn next" onclick="nextPage()">Sonrakı</button>
+    <button class="btn finish" onclick="finishExam()">Bitir</button>
+  </div>
 </div>
 
 <script>
-const EXAM_COUNT = 60;
-const PASS_SCORE = 40;
-let examQuestions = [];
-let examAnswers = {};
-let currentExamIndex = 0;
+let questions = [];
+let userAnswers = {};
+const PER_PAGE = 10;
+let currentPage = 0;
 
-async function loadExamQuestions(){
+async function loadQuestions(){
   try {
     const res = await fetch("https://winter-darkness-2c14.herseydenbiraz4k.workers.dev/");
-    if(!res.ok) throw new Error("Suallar tapılmadı");
-    const all = await res.json();
-    examQuestions = pickRandomQuestions(all, EXAM_COUNT);
-    renderExamQuestion(0);
+    if(!res.ok) throw new Error("Suallar tapılmadı: " + res.status);
+    questions = await res.json();
+
+    // sual mətninin əvvəlindəki "123. " kimi nömrələri sil
+    questions = questions.map(q => ({
+      ...q,
+      text: q.text.replace(/^\d+\.\s*/, "")
+    }));
+
+    renderQuiz();
   } catch(err){
-    document.getElementById("examArea").innerHTML = "Xəta: " + err.message;
+    document.getElementById("quizArea").innerHTML = "Xəta: " + err.message;
+    console.error(err);
   }
 }
+loadQuestions();
 
-function pickRandomQuestions(arr,n){
-  const a=arr.slice();
-  for(let i=a.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [a[i],a[j]]=[a[j],a[i]];
-  }
-  return a.slice(0,Math.min(n,a.length));
-}
-
-function renderExamQuestion(i){
-  const area=document.getElementById("examArea");
+function renderQuiz(){
+  const area=document.getElementById("quizArea");
   area.innerHTML="";
-  const q=examQuestions[i];
-  const card=document.createElement("div");
-  card.className="exam-card";
+  const start=currentPage*PER_PAGE;
+  const end=Math.min(start+PER_PAGE, questions.length);
 
-  const qtext=document.createElement("div");
-  qtext.className="exam-qtext";
-  // ✅ yalnız sıra nömrəsi göstəririk
-  qtext.innerHTML = `<b>${i+1}.</b> ${q.text}`;
-  card.appendChild(qtext);
+  for(let i=start;i<end;i++){
+    const q=questions[i];
+    const card=document.createElement("div");
+    card.className="card";
 
-  const opts=document.createElement("div");
-  opts.className="exam-options";
-  q.options.forEach((txt,idx)=>{
-    const opt=document.createElement("div");
-    opt.className="exam-opt";
-    if(examAnswers[i]===idx) opt.classList.add("selected");
-    opt.onclick=()=>{
-      examAnswers[i]=idx;
-      [...opts.children].forEach(c=>c.classList.remove("selected"));
-      opt.classList.add("selected");
-    };
+    const qtext=document.createElement("div");
+    qtext.className="q-text";
+    qtext.innerHTML=q.text;
 
-    const letter=document.createElement("div");
-    letter.className="letter";
-    letter.textContent=String.fromCharCode(65+idx);
+    const opts=document.createElement("div");
+    opts.className="options";
 
-    const span=document.createElement("div");
-    span.textContent=txt;
+    q.options.forEach((txt,idx)=>{
+      const opt=document.createElement("div");
+      opt.className="opt";
+      opt.onclick=()=>onAnswerClick(i,idx,opt);
 
-    opt.appendChild(letter);
-    opt.appendChild(span);
-    opts.appendChild(opt);
-  });
-  card.appendChild(opts);
+      const letter=document.createElement("div");
+      letter.className="letter";
+      letter.textContent=String.fromCharCode(65+idx);
 
-  const controls=document.createElement("div");
-  controls.className="exam-controls";
-  const prev=document.createElement("button");
-  prev.className="btn prev";
-  prev.textContent="Əvvəlki";
-  prev.disabled=(i===0);
-  prev.onclick=()=>{currentExamIndex--;renderExamQuestion(currentExamIndex)};
-  const next=document.createElement("button");
-  next.className="btn next";
-  next.textContent=(i===examQuestions.length-1)?"Bitir":"Sonrakı";
-  next.onclick=()=>{
-    if(i===examQuestions.length-1){finishExam();}
-    else{currentExamIndex++;renderExamQuestion(currentExamIndex);}
-  };
-  controls.appendChild(prev);
-  controls.appendChild(next);
-  card.appendChild(controls);
+      const span=document.createElement("div");
+      span.textContent=txt;
 
-  area.appendChild(card);
-  window.scrollTo({top:0,behavior:"smooth"}); // səhifənin yuxarısına qalxsın
+      opt.appendChild(letter);
+      opt.appendChild(span);
+      opts.appendChild(opt);
+    });
+
+    card.appendChild(qtext);
+    card.appendChild(opts);
+    area.appendChild(card);
+  }
+
+  updateControls();
+  window.scrollTo({top:0,behavior:"smooth"});
 }
+
+function onAnswerClick(qIndex,idx,optElement){
+  const q=questions[qIndex];
+  const card=optElement.closest(".card");
+  const allOpts=card.querySelectorAll(".opt");
+
+  // artıq cavab seçilibsə icazə vermə
+  if([...allOpts].some(o=>o.classList.contains("correct") || o.classList.contains("wrong"))) return;
+
+  let correctAnswer=q.answer;
+
+  if(idx===correctAnswer){
+    optElement.classList.add("correct");
+  } else {
+    optElement.classList.add("wrong");
+    allOpts[correctAnswer].classList.add("correct");
+  }
+
+  allOpts.forEach(o=>o.classList.add("disabled"));
+  userAnswers[qIndex]=idx;
+}
+
+function updateControls(){
+  el("prevBtn").disabled=(currentPage===0);
+  el("nextBtn").disabled=(currentPage>=Math.ceil(questions.length/PER_PAGE)-1);
+}
+
+function prevPage(){if(currentPage>0){currentPage--;renderQuiz();}}
+function nextPage(){if(currentPage<Math.ceil(questions.length/PER_PAGE)-1){currentPage++;renderQuiz();}}
 
 function finishExam(){
-  let correct=0;
-  examQuestions.forEach((q,i)=>{
-    const sel=examAnswers[i];
-    if(sel===undefined) return;
-    let ans=q.answer;
-    if(ans>=1 && ans<=q.options.length) ans=ans-1; // JSON 1-baseddirsə düzəliş
-    if(sel===ans) correct++;
+  let correctCount=0;
+  questions.forEach((q,qi)=>{
+    if(userAnswers[qi]===q.answer) correctCount++;
   });
-  const passed=(correct>=PASS_SCORE);
-  document.getElementById("examArea").innerHTML=`
-    <div class="exam-card exam-result">
-      <div>İmtahan tamamlandı ✅</div>
-      <div>Xalınız: <strong>${correct}</strong> / ${examQuestions.length}</div>
-      <div style="color:${passed?'green':'red'};margin-top:8px;">
-        ${passed? 'Keçdiniz 🎉':'Keçmədiniz ❌'}
-      </div>
-      <button class="btn prev" style="margin-top:12px;" onclick="location.href='index.html'">Quiz-ə qayıt</button>
-    </div>
-  `;
+  alert("Nəticə: "+correctCount+" / "+questions.length);
 }
 
-loadExamQuestions();
+function el(id){return document.getElementById(id)}
+
+/* === Copy və sağ klik bloklama === */
+document.addEventListener("contextmenu", e => e.preventDefault());
+document.addEventListener("copy", e => e.preventDefault());
 </script>
 </body>
 </html>
