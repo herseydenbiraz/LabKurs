@@ -5,43 +5,59 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>İmtahan — Laboratoriya Kursu</title>
   <style>
-    body { font-family:Arial, sans-serif; background:#f6f8fb; margin:0; padding:20px; user-select:none; }
-    .container { max-width:900px; margin:0 auto; }
-    .exam-card { background:#fff; padding:18px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.08); margin-bottom:15px; }
-    .exam-qtext { font-size:18px; font-weight:600; margin-bottom:10px; }
-    .exam-options { display:flex; flex-direction:column; gap:6px; }
-    .exam-opt { padding:10px; border:1px solid #ccc; border-radius:8px; cursor:pointer; background:#fafafa; }
-    .exam-opt.selected { background:#eef6ff; border-color:#2b6cb0; }
-    .exam-opt.correct { background:#008000; color:#fff; border-color:#008000; }
-    .exam-opt.wrong { background:#cc0000; color:#fff; border-color:#cc0000; }
-    .exam-controls { display:flex; justify-content:space-between; align-items:center; margin-top:12px; }
-    .exam-result { text-align:center; font-size:18px; padding:20px; }
-    .btn { padding:8px 16px; border:none; border-radius:6px; cursor:pointer; font-weight:600; }
-    .btn.prev { background:#2b6cb0; color:#fff; }
-    .btn.next { background:#ffdd57; color:#111; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f6f8fb;
+      margin: 0;
+      padding: 20px;
+      color: #111;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    .container{max-width:900px;margin:0 auto;}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+    .title{font-size:22px;font-weight:700;}
+    .exam-card{background:#fff;padding:15px;margin-bottom:15px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+    .exam-qtext{font-size:18px;font-weight:600;margin-bottom:10px;}
+    .exam-options{display:flex;flex-direction:column;gap:6px;}
+    .exam-opt{display:flex;align-items:center;padding:10px;border-radius:8px;border:1px solid #ccc;background:#f9f9f9;cursor:pointer;transition:.2s;}
+    .exam-opt:hover{background:#eef;}
+    .exam-opt.selected{background:#eef6ff;border-color:#2b6cb0;}
+    .letter{font-weight:bold;margin-right:10px;width:22px;text-align:center;}
+    .exam-controls{display:flex;justify-content:space-between;align-items:center;margin-top:12px;}
+    .exam-result{text-align:center;font-size:18px;padding:20px;}
+    .btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-weight:600;}
+    .btn.prev{background:#2b6cb0;color:#fff;}
+    .btn.next{background:#ffdd57;color:#111;}
   </style>
 </head>
-<body oncontextmenu="return false;">
+<body>
 <div class="container">
-  <h2 style="text-align:center;">🧪 İmtahan</h2>
+  <header>
+    <div class="title">🧪 İmtahan</div>
+    <div class="course-badge">Laboratoriya Kursu</div>
+  </header>
+
   <div id="examArea"></div>
 </div>
 
 <script>
 const EXAM_COUNT = 60;
-const PER_PAGE = 10;
 const PASS_SCORE = 40;
 let examQuestions = [];
 let examAnswers = {};
-let currentPage = 0;
+let currentExamIndex = 0;
 
 async function loadExamQuestions(){
   try {
-    const res = await fetch("https://winter-darkness-2c14.herseydenbiraz4k.workers.dev");
+    const res = await fetch("https://winter-darkness-2c14.herseydenbiraz4k.workers.dev/");
     if(!res.ok) throw new Error("Suallar tapılmadı");
     const all = await res.json();
     examQuestions = pickRandomQuestions(all, EXAM_COUNT);
-    renderPage(0);
+    renderExamQuestion(0);
   } catch(err){
     document.getElementById("examArea").innerHTML = "Xəta: " + err.message;
   }
@@ -56,122 +72,86 @@ function pickRandomQuestions(arr,n){
   return a.slice(0,Math.min(n,a.length));
 }
 
-function getAnswerIndex(q){
-  let ans = q.answer;
-  if(typeof ans === "number"){ 
-    return ans - 1; // 1-based
-  }
-  if(typeof ans === "string"){
-    ans = ans.trim().toLowerCase();
-    const letterMatch = ans.match(/^([a-e])\)?$/i);
-    if(letterMatch){
-      return letterMatch[1].charCodeAt(0) - "a".charCodeAt(0);
-    }
-    const idx = q.options.findIndex(o => o.trim().toLowerCase() === ans);
-    if(idx !== -1) return idx;
-  }
-  return -1;
-}
-
-function renderPage(page){
-  currentPage = page;
-  const start = page * PER_PAGE;
-  const end = Math.min(start + PER_PAGE, examQuestions.length);
-  const area = document.getElementById("examArea");
+function renderExamQuestion(i){
+  const area=document.getElementById("examArea");
   area.innerHTML="";
+  const q=examQuestions[i];
+  const card=document.createElement("div");
+  card.className="exam-card";
 
-  for(let i=start;i<end;i++){
-    const q=examQuestions[i];
-    const card=document.createElement("div");
-    card.className="exam-card";
+  const qtext=document.createElement("div");
+  qtext.className="exam-qtext";
+  // ✅ yalnız sıra nömrəsi göstəririk
+  qtext.innerHTML = `<b>${i+1}.</b> ${q.text}`;
+  card.appendChild(qtext);
 
-    const qtext=document.createElement("div");
-    qtext.className="exam-qtext";
-    qtext.textContent=`${i+1}. ${q.text}`;
-    card.appendChild(qtext);
+  const opts=document.createElement("div");
+  opts.className="exam-options";
+  q.options.forEach((txt,idx)=>{
+    const opt=document.createElement("div");
+    opt.className="exam-opt";
+    if(examAnswers[i]===idx) opt.classList.add("selected");
+    opt.onclick=()=>{
+      examAnswers[i]=idx;
+      [...opts.children].forEach(c=>c.classList.remove("selected"));
+      opt.classList.add("selected");
+    };
 
-    const opts=document.createElement("div");
-    opts.className="exam-options";
-    q.options.forEach((txt,idx)=>{
-      const opt=document.createElement("div");
-      opt.className="exam-opt";
-      if(examAnswers[i]===idx) opt.classList.add("selected");
-      opt.textContent=txt;
-      opt.onclick=()=>{
-        examAnswers[i]=idx;
-        [...opts.children].forEach(c=>c.classList.remove("selected"));
-        opt.classList.add("selected");
-      };
-      opts.appendChild(opt);
-    });
-    card.appendChild(opts);
-    area.appendChild(card);
-  }
+    const letter=document.createElement("div");
+    letter.className="letter";
+    letter.textContent=String.fromCharCode(65+idx);
+
+    const span=document.createElement("div");
+    span.textContent=txt;
+
+    opt.appendChild(letter);
+    opt.appendChild(span);
+    opts.appendChild(opt);
+  });
+  card.appendChild(opts);
 
   const controls=document.createElement("div");
   controls.className="exam-controls";
   const prev=document.createElement("button");
   prev.className="btn prev";
   prev.textContent="Əvvəlki";
-  prev.disabled=(page===0);
-  prev.onclick=()=>{renderPage(page-1); window.scrollTo({top:0,behavior:"smooth"});};
-
+  prev.disabled=(i===0);
+  prev.onclick=()=>{currentExamIndex--;renderExamQuestion(currentExamIndex)};
   const next=document.createElement("button");
   next.className="btn next";
-  next.textContent=(end===examQuestions.length)?"Bitir":"Sonrakı";
+  next.textContent=(i===examQuestions.length-1)?"Bitir":"Sonrakı";
   next.onclick=()=>{
-    if(end===examQuestions.length){ finishExam(); }
-    else { renderPage(page+1); window.scrollTo({top:0,behavior:"smooth"}); }
+    if(i===examQuestions.length-1){finishExam();}
+    else{currentExamIndex++;renderExamQuestion(currentExamIndex);}
   };
   controls.appendChild(prev);
   controls.appendChild(next);
-  area.appendChild(controls);
+  card.appendChild(controls);
+
+  area.appendChild(card);
+  window.scrollTo({top:0,behavior:"smooth"}); // səhifənin yuxarısına qalxsın
 }
 
 function finishExam(){
   let correct=0;
-  const area=document.getElementById("examArea");
-  area.innerHTML="";
-
   examQuestions.forEach((q,i)=>{
-    const ansIndex = getAnswerIndex(q);
     const sel=examAnswers[i];
-    const card=document.createElement("div");
-    card.className="exam-card";
-
-    const qtext=document.createElement("div");
-    qtext.className="exam-qtext";
-    qtext.textContent=`${i+1}. ${q.text}`;
-    card.appendChild(qtext);
-
-    const opts=document.createElement("div");
-    opts.className="exam-options";
-    q.options.forEach((txt,idx)=>{
-      const opt=document.createElement("div");
-      opt.className="exam-opt";
-      opt.textContent=txt;
-      if(idx===ansIndex) opt.classList.add("correct");
-      if(sel===idx && sel!==ansIndex) opt.classList.add("wrong");
-      opts.appendChild(opt);
-    });
-    card.appendChild(opts);
-    area.appendChild(card);
-
-    if(sel===ansIndex) correct++;
+    if(sel===undefined) return;
+    let ans=q.answer;
+    if(ans>=1 && ans<=q.options.length) ans=ans-1; // JSON 1-baseddirsə düzəliş
+    if(sel===ans) correct++;
   });
-
   const passed=(correct>=PASS_SCORE);
-  const result=document.createElement("div");
-  result.className="exam-card exam-result";
-  result.innerHTML=`
-    <div>İmtahan tamamlandı ✅</div>
-    <div>Xalınız: <strong>${correct}</strong> / ${examQuestions.length}</div>
-    <div style="color:${passed?'green':'red'};margin-top:8px;">
-      ${passed? 'Keçdiniz 🎉':'Keçmədiniz ❌'}
+  document.getElementById("examArea").innerHTML=`
+    <div class="exam-card exam-result">
+      <div>İmtahan tamamlandı ✅</div>
+      <div>Xalınız: <strong>${correct}</strong> / ${examQuestions.length}</div>
+      <div style="color:${passed?'green':'red'};margin-top:8px;">
+        ${passed? 'Keçdiniz 🎉':'Keçmədiniz ❌'}
+      </div>
+      <button class="btn prev" style="margin-top:12px;" onclick="location.href='index.html'">Quiz-ə qayıt</button>
     </div>
-    <button class="btn prev" style="margin-top:12px;" onclick="location.href='index.html'">Quiz-ə qayıt</button>
   `;
-  area.prepend(result);
 }
 
 loadExamQuestions();
