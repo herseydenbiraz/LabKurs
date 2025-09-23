@@ -225,6 +225,12 @@ function renderTree(){
     tree.appendChild(blockDiv);
   }
 }
+  document.getElementById("searchInput").addEventListener("keyup", function(e){
+  if(e.key === "Enter"){
+    goToQuestion();
+  }
+});
+
 </script>
 
 <footer style="
