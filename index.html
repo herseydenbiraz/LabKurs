@@ -116,7 +116,9 @@ function renderQuiz(){
     q.options.forEach((txt,idx)=>{
       const opt=document.createElement("div");
       opt.className="opt";
-    
+      opt.dataset.optIndex=idx;
+      opt.onclick=()=>onOptionClick(q,opt,idx);
+
       const letter=document.createElement("div");
       letter.className="letter";
       letter.textContent=String.fromCharCode(65+idx);
@@ -136,6 +138,21 @@ function renderQuiz(){
 
   updateControls(total,totalPages);
   renderTree();
+}
+
+// ✅ Cavab seçimi
+function onOptionClick(q,optElement,idx){
+  const card=optElement.closest(".card");
+  const allOpts=card.querySelectorAll(".opt");
+  // Əgər artıq doğru cavab seçilibsə, təkrar icazə vermə
+  if([...allOpts].some(o=>o.classList.contains("correct"))) return;
+
+  if(idx===q.answer){
+    optElement.classList.add("correct");
+    allOpts.forEach(o=>o.classList.add("disabled"));
+  } else {
+    optElement.classList.add("wrong","disabled");
+  }
 }
 
 function updateControls(total,totalPages){
