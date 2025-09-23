@@ -34,7 +34,7 @@ let currentExamIndex = 0;
 
 async function loadExamQuestions(){
   try {
-    const res = await fetch("questions.json");
+    const res = await fetch("https://winter-darkness-2c14.herseydenbiraz4k.workers.dev");
     if(!res.ok) throw new Error("Suallar tapılmadı");
     const all = await res.json();
     examQuestions = pickRandomQuestions(all, EXAM_COUNT);
