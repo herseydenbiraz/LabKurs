@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>İmtahan — Laboratoriya Kursu</title>
   <style>
-    body { font-family:Arial, sans-serif; background:#f6f8fb; margin:0; padding:20px; }
+    body { font-family:Arial, sans-serif; background:#f6f8fb; margin:0; padding:20px; user-select:none; }
     .container { max-width:900px; margin:0 auto; }
     .exam-card { background:#fff; padding:18px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.08); margin-bottom:15px; }
     .exam-qtext { font-size:18px; font-weight:600; margin-bottom:10px; }
@@ -21,7 +21,7 @@
     .btn.next { background:#ffdd57; color:#111; }
   </style>
 </head>
-<body>
+<body oncontextmenu="return false">
 <div class="container">
   <h2 style="text-align:center;">🧪 İmtahan</h2>
   <div id="examArea"></div>
@@ -56,7 +56,6 @@ function pickRandomQuestions(arr,n){
   return a.slice(0,Math.min(n,a.length));
 }
 
-// sual mətnindən əvvəlki nömrəni silmək üçün
 function removeNumberPrefix(text){
   return text.replace(/^\d+\.\s*/, "");
 }
@@ -76,7 +75,6 @@ function renderPage(page){
 
     const qtext=document.createElement("div");
     qtext.className="exam-qtext";
-    // sıra nömrəsi (1-60) və təmizlənmiş mətn
     qtext.textContent=`${i+1}. ${removeNumberPrefix(q.text)}`;
     card.appendChild(qtext);
 
@@ -105,14 +103,14 @@ function renderPage(page){
   prev.className="btn prev";
   prev.textContent="Əvvəlki";
   prev.disabled=(page===0);
-  prev.onclick=()=>renderPage(page-1);
+  prev.onclick=()=>{ renderPage(page-1); window.scrollTo({top:0,behavior:"smooth"}); };
 
   const next=document.createElement("button");
   next.className="btn next";
   next.textContent=(end===examQuestions.length)?"Bitir və Yoxla":"Sonrakı";
   next.onclick=()=>{
     if(end===examQuestions.length){ finishExam(); }
-    else renderPage(page+1);
+    else { renderPage(page+1); window.scrollTo({top:0,behavior:"smooth"}); }
   };
 
   controls.appendChild(prev);
@@ -137,21 +135,20 @@ function finishExam(){
     const opts=document.createElement("div");
     opts.className="exam-options";
 
+    let ansIndex = (typeof q.answer === "number") ? q.answer-1 : 0;
+
     q.options.forEach((txt,idx)=>{
       const opt=document.createElement("div");
       opt.className="exam-opt";
       opt.textContent=txt;
 
-      let ans=q.answer;
-      if(ans>=1 && ans<=q.options.length) ans=ans-1;
-
-      if(idx===ans) opt.classList.add("correct");
-      if(examAnswers[i]===idx && idx!==ans) opt.classList.add("wrong");
+      if(idx===ansIndex) opt.classList.add("correct");
+      if(examAnswers[i]===idx && idx!==ansIndex) opt.classList.add("wrong");
 
       opts.appendChild(opt);
     });
 
-    if(examAnswers[i]===q.answer-1) correct++;
+    if(examAnswers[i]===ansIndex) correct++;
     card.appendChild(opts);
     area.appendChild(card);
   });
@@ -168,6 +165,7 @@ function finishExam(){
     <button class="btn prev" style="margin-top:12px;" onclick="location.href='index.html'">Quiz-ə qayıt</button>
   `;
   area.prepend(result);
+  window.scrollTo({top:0,behavior:"smooth"});
 }
 
 loadExamQuestions();
