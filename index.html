@@ -116,9 +116,7 @@ function renderQuiz(){
     q.options.forEach((txt,idx)=>{
       const opt=document.createElement("div");
       opt.className="opt";
-      if(idx===q.answer){ 
-        opt.classList.add("correct"); // ✅ doğru cavab işarələnmiş
-      }
+    
       const letter=document.createElement("div");
       letter.className="letter";
       letter.textContent=String.fromCharCode(65+idx);
