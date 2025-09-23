@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Laboratoriya Kursu — Quiz</title>
+  <title>📘 Suallar — Cavablarla</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -11,18 +11,15 @@
       margin: 0;
       padding: 20px;
       color: #111;
-
-      /* Metni seçmək mümkün olmasın */
       -webkit-user-select: none;
       -moz-user-select: none;
       -ms-user-select: none;
       user-select: none;
     }
-
     .container{max-width:900px;margin:0 auto;}
     header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
-    .title{font-size:22px;font-weight:700;}
-    .course-badge{background:#ffdd57;padding:6px 12px;border-radius:6px;font-weight:700;}
+    .title{font-size:22px;font-weight:700;color:#2b6cb0;}
+    .home-btn{background:#2b6cb0;padding:6px 12px;border-radius:6px;font-weight:700;color:#fff;text-decoration:none;}
     .card{background:#fff;padding:15px;margin-bottom:15px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
     .q-text{font-size:18px;font-weight:600;margin-bottom:10px;}
     .options{display:flex;flex-direction:column;gap:6px;}
@@ -56,15 +53,11 @@
 
 <div class="container">
   <header>
-    <div class="title">
-  <button onclick="location.href='imtahan.html'" 
-          class="btn" 
-          style="padding:6px 12px; background:#2b6cb0; color:#fff; border-radius:8px; border:none; cursor:pointer;">
-    Imtahan
-  </button>
-</div>
-
-    <div class="course-badge">Laboratoriya Kursu</div>
+    <div class="title">📘 Suallar (Cavablarla)</div>
+    <div style="display:flex;gap:10px;">
+      <a href="index.html" class="home-btn">Ana Səhifə</a>
+      <a href="imtahan.html" class="home-btn" style="background:#ff6666;">İmtahan</a>
+    </div>
   </header>
 
   <div id="quizArea"></div>
@@ -83,8 +76,6 @@ let questions = [];
 const PER_PAGE = 10;
 const BLOCK_SIZE = 100;
 let currentPageIndex = 0;
-  let scrollTarget = null;
-
 
 async function loadQuestions(){
   try {
@@ -95,7 +86,6 @@ async function loadQuestions(){
     renderTree();
   } catch(err){
     document.getElementById("quizArea").innerHTML = "Xəta: " + err.message;
-    console.error(err);
   }
 }
 loadQuestions();
@@ -126,8 +116,9 @@ function renderQuiz(){
     q.options.forEach((txt,idx)=>{
       const opt=document.createElement("div");
       opt.className="opt";
-      opt.onclick=()=>onOptionClick(q,opt,idx);
-
+      if(idx===q.answer){ 
+        opt.classList.add("correct"); // ✅ doğru cavab işarələnmiş
+      }
       const letter=document.createElement("div");
       letter.className="letter";
       letter.textContent=String.fromCharCode(65+idx);
@@ -146,21 +137,7 @@ function renderQuiz(){
   }
 
   updateControls(total,totalPages);
-  window.scrollTo({top:0,behavior:"smooth"});
-  renderTree(); // hər dəfə səhifə dəyişəndə ağac yenilənsin
-}
-
-function onOptionClick(q,optElement,idx){
-  const card=optElement.closest(".card");
-  const allOpts=card.querySelectorAll(".opt");
-  if([...allOpts].some(o=>o.classList.contains("correct"))) return;
-
-  if(idx===q.answer){
-    optElement.classList.add("correct");
-    allOpts.forEach(o=>o.classList.add("disabled"));
-  } else {
-    optElement.classList.add("wrong","disabled");
-  }
+  renderTree();
 }
 
 function updateControls(total,totalPages){
@@ -179,33 +156,23 @@ function goToPage(p){currentPageIndex=p;renderQuiz();}
 function goToQuestion(){
   const val = parseInt(document.getElementById("searchInput").value);
   const total = questions.length;
-
   if(!val || val < 1 || val > total){
     alert("Düzgün sual nömrəsi daxil edin!");
     return;
   }
-
   const pageIdx = Math.floor((val-1) / PER_PAGE);
   currentPageIndex = pageIdx;
-
-  // əvvəlcə səhifəni render et
   renderQuiz();
-
-  // sonra həmin suala scroll et
   const targetId = "q-" + val;
   const el = document.getElementById(targetId);
-  if(el){
-    el.scrollIntoView({behavior:"smooth", block:"center"});
-  }
+  if(el){el.scrollIntoView({behavior:"smooth", block:"center"});}
 }
 
 /* === Tree Pagination === */
 function renderTree(){
   const total = questions.length;
-  const totalPages = Math.ceil(total / PER_PAGE);
   const tree = el("tree");
   tree.innerHTML = "";
-
   const totalBlocks = Math.ceil(total / BLOCK_SIZE);
 
   for(let b=0; b<totalBlocks; b++){
@@ -258,20 +225,9 @@ function renderTree(){
     tree.appendChild(blockDiv);
   }
 }
-
-/* === Copy / sağ klik bloklama === */
-document.addEventListener("contextmenu", e => e.preventDefault());
-document.addEventListener("copy", e => e.preventDefault());
-
-/* === Enter basanda da Get işləsin === */
-document.getElementById("searchInput").addEventListener("keydown", function(e){
-  if(e.key === "Enter"){
-    goToQuestion();
-  }
-});
 </script>
-</body>
-  <footer style="
+
+<footer style="
   margin-top:100px;
   padding:18px;
   text-align:center;
@@ -279,13 +235,12 @@ document.getElementById("searchInput").addEventListener("keydown", function(e){
   background:#fff;
   border-top:2px dashed #ccc;
   color:#333;
-  font-size:14px;
-">
+  font-size:14px;">
   <span style="opacity:0.8;">Built & Designed by</span>  
   <strong style="color:#2b6cb0;">Dr. Ibrahimov</strong> ⚡  
   <div style="margin-top:6px; font-size:12px; opacity:0.6;">
     © 2025 — Laboratory Course
   </div>
 </footer>
-
+</body>
 </html>
