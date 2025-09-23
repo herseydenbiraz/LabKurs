@@ -275,13 +275,16 @@ function updateControls(total,totalPages){
   el("nextBtn").disabled=(currentPageIndex===totalPages-1);
 }
 
-function prevPage(){if(currentPageIndex>0){currentPageIndex--;renderQuiz();}}
+function prevPage(){if(currentPageIndex>0){currentPageIndex--;renderQuiz();    window.scrollTo({top:0, behavior:"smooth"});
+}}
 function nextPage(){
   const total = questions.length;
   const totalPages = Math.ceil(total / PER_PAGE);
-  if(currentPageIndex<totalPages-1){currentPageIndex++;renderQuiz();}
+  if(currentPageIndex<totalPages-1){currentPageIndex++;renderQuiz();    window.scrollTo({top:0, behavior:"smooth"});
 }
-function goToPage(p){currentPageIndex=p;renderQuiz();}
+}
+function goToPage(p){currentPageIndex=p;renderQuiz();    window.scrollTo({top:0, behavior:"smooth"});
+}
 
 function goToQuestion(){
   const val = parseInt(document.getElementById("searchInput").value);
