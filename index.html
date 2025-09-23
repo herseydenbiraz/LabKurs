@@ -18,9 +18,44 @@
     }
     .container{max-width:900px;margin:0 auto;}
     header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
-    .title{font-size:22px;font-weight:700;color:#2b6cb0;}
-    .home-btn{background:#2b6cb0;padding:6px 12px;border-radius:6px;font-weight:700;color:#fff;text-decoration:none;}
-    .card{background:#fff;padding:15px;margin-bottom:15px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+    .title{font-size:22px;font-weight:700;color:#2b6cb0;  margin-bottom: 10px;
+}
+.nav-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap; /* kiçik ekranda sətirdən aşağı düşsün */
+  justify-content: center;
+  margin: 10px 0;
+}
+
+.nav-buttons a {
+  flex: 1; /* hər biri bərabər ölçüdə olsun */
+  min-width: 100px;
+  text-align: center;
+  padding: 10px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.nav-buttons a.blue {
+  background: #007bff;
+  color: white;
+}
+
+.nav-buttons a.red {
+  background: #dc3545;
+  color: white;
+}
+
+/* Mobil ekran üçün xüsusi qayda */
+@media (max-width: 600px) {
+  .nav-buttons {
+    flex-direction: column; /* mobil ekranda alt-alta */
+    align-items: stretch;
+  }
+}    .card{background:#fff;padding:15px;margin-bottom:15px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
     .q-text{font-size:18px;font-weight:600;margin-bottom:10px;}
     .options{display:flex;flex-direction:column;gap:6px;}
     .opt{display:flex;align-items:center;padding:10px;border-radius:8px;border:1px solid #ccc;background:#f9f9f9;cursor:pointer;transition:.2s;}
@@ -55,8 +90,8 @@
   <header>
     <div class="title">📘Laboratoriya Kursu </div>
     <div style="display:flex;gap:10px;">
-      <a href="cavablar.html" class="home-btn">Suallar (Cavablarla)</a>
-      <a href="imtahan.html" class="home-btn" style="background:#ff6666;">İmtahan</a>
+      <a href="cavablar.html" class="blue">Suallar (Cavablarla)</a>
+      <a href="imtahan.html" class="red" style="background:#ff6666;">İmtahan</a>
     </div>
   </header>
 
