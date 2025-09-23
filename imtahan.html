@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>İmtahan — Laboratoriya Kursu</title>
+  <title>İmtahan — Yarat</title>
   <style>
     body {font-family: Arial, sans-serif; background:#f6f8fb; margin:0; padding:20px; color:#111;}
     .container{max-width:900px;margin:0 auto;}
     header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
     .title{font-size:22px;font-weight:700;}
-    .course-badge{background:#2b6cb0;padding:6px 12px;border-radius:6px;font-weight:700;color:#fff;}
+    .home-btn{background:#2b6cb0;padding:6px 12px;border-radius:6px;font-weight:700;color:#fff;text-decoration:none;}
     .card{background:#fff;padding:15px;margin-bottom:15px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
     .q-text{font-size:18px;font-weight:600;margin-bottom:10px;}
     .options{display:flex;flex-direction:column;gap:6px;}
@@ -31,7 +31,7 @@
 <div class="container">
   <header>
     <div class="title">İmtahan</div>
-    <div class="course-badge">Laboratoriya Kursu</div>
+    <a href="index.html" class="home-btn">Ana Səhifə</a>
   </header>
 
   <div id="quizArea"></div>
@@ -45,27 +45,23 @@
 
 <script>
 let questions = [];
-let examQuestions = [];
 let userAnswers = {};
 const PER_PAGE = 10;
-const EXAM_COUNT = 60;
-const PASS_SCORE = 40;
 let currentPage = 0;
+let examFinished = false;
 
 async function loadQuestions(){
   try {
     const res = await fetch("https://winter-darkness-2c14.herseydenbiraz4k.workers.dev/");
     if(!res.ok) throw new Error("Suallar tapılmadı: " + res.status);
-    questions = await res.json();
+    let all = await res.json();
 
-    // 60 təsadüfi sual seç
-    examQuestions = pickRandom(questions, EXAM_COUNT);
+    // təsadüfi 60 sual seç
+    all = all.map(q=>({...q, text:q.text.replace(/^\d+\.\s*/, "")}));
+    all = shuffle(all).slice(0,60);
 
-    // başındakı "123. " nömrələri sil
-    examQuestions = examQuestions.map((q,idx) => ({
-      ...q,
-      text: (idx+1)+". " + q.text.replace(/^\d+\.\s*/, "")
-    }));
+    // sıra nömrəsi əlavə et
+    questions = all.map((q,i)=>({...q, text:(i+1)+". "+q.text}));
 
     renderQuiz();
   } catch(err){
@@ -75,19 +71,20 @@ async function loadQuestions(){
 }
 loadQuestions();
 
-function pickRandom(arr,n){
-  const shuffled=[...arr].sort(()=>0.5-Math.random());
-  return shuffled.slice(0,n);
+function shuffle(arr){
+  return arr.map(v=>({v,sort:Math.random()}))
+            .sort((a,b)=>a.sort-b.sort)
+            .map(({v})=>v);
 }
 
 function renderQuiz(){
   const area=document.getElementById("quizArea");
   area.innerHTML="";
   const start=currentPage*PER_PAGE;
-  const end=Math.min(start+PER_PAGE, examQuestions.length);
+  const end=Math.min(start+PER_PAGE, questions.length);
 
   for(let i=start;i<end;i++){
-    const q=examQuestions[i];
+    const q=questions[i];
     const card=document.createElement("div");
     card.className="card";
 
@@ -125,11 +122,11 @@ function renderQuiz(){
 }
 
 function onAnswerClick(qIndex,idx,optElement){
-  const q=examQuestions[qIndex];
+  if(examFinished) return; // imtahan bitibsə klik etməsin
+  const q=questions[qIndex];
   const card=optElement.closest(".card");
   const allOpts=card.querySelectorAll(".opt");
 
-  // artıq cavab seçilibsə icazə vermə
   if([...allOpts].some(o=>o.classList.contains("correct") || o.classList.contains("wrong"))) return;
 
   let correctAnswer=q.answer;
@@ -147,46 +144,39 @@ function onAnswerClick(qIndex,idx,optElement){
 
 function updateControls(){
   el("prevBtn").disabled=(currentPage===0);
-  el("nextBtn").disabled=(currentPage>=Math.ceil(examQuestions.length/PER_PAGE)-1);
+  el("nextBtn").disabled=(currentPage>=Math.ceil(questions.length/PER_PAGE)-1);
 }
 
 function prevPage(){if(currentPage>0){currentPage--;renderQuiz();}}
-function nextPage(){if(currentPage<Math.ceil(examQuestions.length/PER_PAGE)-1){currentPage++;renderQuiz();}}
+function nextPage(){if(currentPage<Math.ceil(questions.length/PER_PAGE)-1){currentPage++;renderQuiz();}}
 
 function finishExam(){
   let correctCount=0;
-  examQuestions.forEach((q,qi)=>{
+  questions.forEach((q,qi)=>{
     if(userAnswers[qi]===q.answer) correctCount++;
   });
 
-  const passed = correctCount >= PASS_SCORE;
-  alert(
-    "Nəticə: "+correctCount+" / "+examQuestions.length+"\n" +
-    (passed ? "✅ Keçdiniz!" : "❌ Keçmədiniz!")
-  );
+  // bütün cavab seçimlərini kilidlə
+  document.querySelectorAll(".opt").forEach(opt=>{
+    opt.classList.add("disabled");
+    opt.style.pointerEvents="none";
+  });
+
+  examFinished = true;
+
+  let resultMsg="Nəticə: "+correctCount+" / "+questions.length+"\n";
+  if(correctCount>=40){
+    resultMsg+="✅ Təbriklər, keçdiniz!";
+  } else {
+    resultMsg+="❌ Təəssüf, keçid balını toplaya bilmədiniz.";
+  }
+  alert(resultMsg);
 }
 
 function el(id){return document.getElementById(id)}
 
-/* === Copy və sağ klik bloklama === */
 document.addEventListener("contextmenu", e => e.preventDefault());
 document.addEventListener("copy", e => e.preventDefault());
 </script>
 </body>
-  <footer style="
-  margin-top:100px;
-  padding:18px;
-  text-align:center;
-  font-family:'Trebuchet MS', sans-serif;
-  background:#fff;
-  border-top:2px dashed #ccc;
-  color:#333;
-  font-size:14px;
-">
-  <span style="opacity:0.8;">Built & Designed by</span>  
-  <strong style="color:#2b6cb0;">Dr. Ibrahimov</strong> ⚡  
-  <div style="margin-top:6px; font-size:12px; opacity:0.6;">
-    © 2025 — Laboratory Course
-  </div>
-</footer>
 </html>
