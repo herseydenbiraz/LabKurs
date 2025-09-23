@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Imtahan — Laboratoriya Kursu</title>
+  <title>İmtahan — Laboratoriya Kursu</title>
   <style>
     body { font-family:Arial, sans-serif; background:#f6f8fb; margin:0; padding:20px; }
     .container { max-width:900px; margin:0 auto; }
@@ -12,6 +12,8 @@
     .exam-options { display:flex; flex-direction:column; gap:6px; }
     .exam-opt { padding:10px; border:1px solid #ccc; border-radius:8px; cursor:pointer; background:#fafafa; }
     .exam-opt.selected { background:#eef6ff; border-color:#2b6cb0; }
+    .exam-opt.correct { background:#4caf50; color:#fff; }
+    .exam-opt.wrong { background:#e53935; color:#fff; }
     .exam-controls { display:flex; justify-content:space-between; align-items:center; margin-top:12px; }
     .exam-result { text-align:center; font-size:18px; padding:20px; }
     .btn { padding:8px 16px; border:none; border-radius:6px; cursor:pointer; font-weight:600; }
@@ -27,10 +29,11 @@
 
 <script>
 const EXAM_COUNT = 60;
+const PER_PAGE = 10;
 const PASS_SCORE = 40;
 let examQuestions = [];
 let examAnswers = {};
-let currentExamIndex = 0;
+let currentPage = 0;
 
 async function loadExamQuestions(){
   try {
@@ -38,7 +41,7 @@ async function loadExamQuestions(){
     if(!res.ok) throw new Error("Suallar tapılmadı");
     const all = await res.json();
     examQuestions = pickRandomQuestions(all, EXAM_COUNT);
-    renderExamQuestion(0);
+    renderPage(0);
   } catch(err){
     document.getElementById("examArea").innerHTML = "Xəta: " + err.message;
   }
@@ -53,75 +56,118 @@ function pickRandomQuestions(arr,n){
   return a.slice(0,Math.min(n,a.length));
 }
 
-function renderExamQuestion(i){
+// sual mətnindən əvvəlki nömrəni silmək üçün
+function removeNumberPrefix(text){
+  return text.replace(/^\d+\.\s*/, "");
+}
+
+function renderPage(page){
+  currentPage=page;
   const area=document.getElementById("examArea");
   area.innerHTML="";
-  const q=examQuestions[i];
-  const card=document.createElement("div");
-  card.className="exam-card";
 
-  const qtext=document.createElement("div");
-  qtext.className="exam-qtext";
-  qtext.textContent=`${i+1}. ${q.text}`;
-  card.appendChild(qtext);
+  const start=page*PER_PAGE;
+  const end=Math.min(start+PER_PAGE,examQuestions.length);
+  
+  for(let i=start;i<end;i++){
+    const q=examQuestions[i];
+    const card=document.createElement("div");
+    card.className="exam-card";
 
-  const opts=document.createElement("div");
-  opts.className="exam-options";
-  q.options.forEach((txt,idx)=>{
-    const opt=document.createElement("div");
-    opt.className="exam-opt";
-    if(examAnswers[i]===idx) opt.classList.add("selected");
-    opt.textContent=txt;
-    opt.onclick=()=>{
-      examAnswers[i]=idx;
-      [...opts.children].forEach(c=>c.classList.remove("selected"));
-      opt.classList.add("selected");
-    };
-    opts.appendChild(opt);
-  });
-  card.appendChild(opts);
+    const qtext=document.createElement("div");
+    qtext.className="exam-qtext";
+    // sıra nömrəsi (1-60) və təmizlənmiş mətn
+    qtext.textContent=`${i+1}. ${removeNumberPrefix(q.text)}`;
+    card.appendChild(qtext);
+
+    const opts=document.createElement("div");
+    opts.className="exam-options";
+    q.options.forEach((txt,idx)=>{
+      const opt=document.createElement("div");
+      opt.className="exam-opt";
+      if(examAnswers[i]===idx) opt.classList.add("selected");
+      opt.textContent=txt;
+      opt.onclick=()=>{
+        examAnswers[i]=idx;
+        [...opts.children].forEach(c=>c.classList.remove("selected"));
+        opt.classList.add("selected");
+      };
+      opts.appendChild(opt);
+    });
+    card.appendChild(opts);
+    area.appendChild(card);
+  }
 
   const controls=document.createElement("div");
   controls.className="exam-controls";
+
   const prev=document.createElement("button");
   prev.className="btn prev";
   prev.textContent="Əvvəlki";
-  prev.disabled=(i===0);
-  prev.onclick=()=>{currentExamIndex--;renderExamQuestion(currentExamIndex)};
+  prev.disabled=(page===0);
+  prev.onclick=()=>renderPage(page-1);
+
   const next=document.createElement("button");
   next.className="btn next";
-  next.textContent=(i===examQuestions.length-1)?"Bitir":"Sonrakı";
+  next.textContent=(end===examQuestions.length)?"Bitir və Yoxla":"Sonrakı";
   next.onclick=()=>{
-    if(i===examQuestions.length-1){finishExam();}
-    else{currentExamIndex++;renderExamQuestion(currentExamIndex);}
+    if(end===examQuestions.length){ finishExam(); }
+    else renderPage(page+1);
   };
+
   controls.appendChild(prev);
   controls.appendChild(next);
-  card.appendChild(controls);
-
-  area.appendChild(card);
+  area.appendChild(controls);
 }
 
 function finishExam(){
   let correct=0;
+  const area=document.getElementById("examArea");
+  area.innerHTML="";
+
   examQuestions.forEach((q,i)=>{
-    const sel=examAnswers[i];
-    if(sel===undefined) return;
-    let ans=q.answer;
-    if(ans>=1 && ans<=q.options.length) ans=ans-1; // 1-based düzəlişi
-    if(sel===ans) correct++;
+    const card=document.createElement("div");
+    card.className="exam-card";
+
+    const qtext=document.createElement("div");
+    qtext.className="exam-qtext";
+    qtext.textContent=`${i+1}. ${removeNumberPrefix(q.text)}`;
+    card.appendChild(qtext);
+
+    const opts=document.createElement("div");
+    opts.className="exam-options";
+
+    q.options.forEach((txt,idx)=>{
+      const opt=document.createElement("div");
+      opt.className="exam-opt";
+      opt.textContent=txt;
+
+      let ans=q.answer;
+      if(ans>=1 && ans<=q.options.length) ans=ans-1;
+
+      if(idx===ans) opt.classList.add("correct");
+      if(examAnswers[i]===idx && idx!==ans) opt.classList.add("wrong");
+
+      opts.appendChild(opt);
+    });
+
+    if(examAnswers[i]===q.answer-1) correct++;
+    card.appendChild(opts);
+    area.appendChild(card);
   });
+
   const passed=(correct>=PASS_SCORE);
-  document.getElementById("examArea").innerHTML=`
-    <div class="exam-card exam-result">
-      <div>İmtahan tamamlandı ✅</div>
-      <div>Xalınız: <strong>${correct}</strong> / ${examQuestions.length}</div>
-      <div style="color:${passed?'green':'red'};margin-top:8px;">
-        ${passed? 'Keçdiniz 🎉':'Keçmədiniz ❌'}
-      </div>
-      <button class="btn prev" style="margin-top:12px;" onclick="location.href='index.html'">Quiz-ə qayıt</button>
+  const result=document.createElement("div");
+  result.className="exam-card exam-result";
+  result.innerHTML=`
+    <div>İmtahan tamamlandı ✅</div>
+    <div>Xalınız: <strong>${correct}</strong> / ${examQuestions.length}</div>
+    <div style="color:${passed?'green':'red'};margin-top:8px;">
+      ${passed? 'Keçdiniz 🎉':'Keçmədiniz ❌'}
     </div>
+    <button class="btn prev" style="margin-top:12px;" onclick="location.href='index.html'">Quiz-ə qayıt</button>
   `;
+  area.prepend(result);
 }
 
 loadExamQuestions();
