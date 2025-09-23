@@ -12,8 +12,8 @@
     .exam-options { display:flex; flex-direction:column; gap:6px; }
     .exam-opt { padding:10px; border:1px solid #ccc; border-radius:8px; cursor:pointer; background:#fafafa; }
     .exam-opt.selected { background:#eef6ff; border-color:#2b6cb0; }
-    .exam-opt.correct { background:#4caf50; color:#fff; }
-    .exam-opt.wrong { background:#e53935; color:#fff; }
+    .exam-opt.correct { background:#008000; color:#fff; border-color:#008000; }
+    .exam-opt.wrong { background:#cc0000; color:#fff; border-color:#cc0000; }
     .exam-controls { display:flex; justify-content:space-between; align-items:center; margin-top:12px; }
     .exam-result { text-align:center; font-size:18px; padding:20px; }
     .btn { padding:8px 16px; border:none; border-radius:6px; cursor:pointer; font-weight:600; }
@@ -21,7 +21,7 @@
     .btn.next { background:#ffdd57; color:#111; }
   </style>
 </head>
-<body oncontextmenu="return false">
+<body oncontextmenu="return false;">
 <div class="container">
   <h2 style="text-align:center;">🧪 İmtahan</h2>
   <div id="examArea"></div>
@@ -56,18 +56,30 @@ function pickRandomQuestions(arr,n){
   return a.slice(0,Math.min(n,a.length));
 }
 
-function removeNumberPrefix(text){
-  return text.replace(/^\d+\.\s*/, "");
+function getAnswerIndex(q){
+  let ans = q.answer;
+  if(typeof ans === "number"){ 
+    return ans - 1; // 1-based
+  }
+  if(typeof ans === "string"){
+    ans = ans.trim().toLowerCase();
+    const letterMatch = ans.match(/^([a-e])\)?$/i);
+    if(letterMatch){
+      return letterMatch[1].charCodeAt(0) - "a".charCodeAt(0);
+    }
+    const idx = q.options.findIndex(o => o.trim().toLowerCase() === ans);
+    if(idx !== -1) return idx;
+  }
+  return -1;
 }
 
 function renderPage(page){
-  currentPage=page;
-  const area=document.getElementById("examArea");
+  currentPage = page;
+  const start = page * PER_PAGE;
+  const end = Math.min(start + PER_PAGE, examQuestions.length);
+  const area = document.getElementById("examArea");
   area.innerHTML="";
 
-  const start=page*PER_PAGE;
-  const end=Math.min(start+PER_PAGE,examQuestions.length);
-  
   for(let i=start;i<end;i++){
     const q=examQuestions[i];
     const card=document.createElement("div");
@@ -75,7 +87,7 @@ function renderPage(page){
 
     const qtext=document.createElement("div");
     qtext.className="exam-qtext";
-    qtext.textContent=`${i+1}. ${removeNumberPrefix(q.text)}`;
+    qtext.textContent=`${i+1}. ${q.text}`;
     card.appendChild(qtext);
 
     const opts=document.createElement("div");
@@ -98,21 +110,19 @@ function renderPage(page){
 
   const controls=document.createElement("div");
   controls.className="exam-controls";
-
   const prev=document.createElement("button");
   prev.className="btn prev";
   prev.textContent="Əvvəlki";
   prev.disabled=(page===0);
-  prev.onclick=()=>{ renderPage(page-1); window.scrollTo({top:0,behavior:"smooth"}); };
+  prev.onclick=()=>{renderPage(page-1); window.scrollTo({top:0,behavior:"smooth"});};
 
   const next=document.createElement("button");
   next.className="btn next";
-  next.textContent=(end===examQuestions.length)?"Bitir və Yoxla":"Sonrakı";
+  next.textContent=(end===examQuestions.length)?"Bitir":"Sonrakı";
   next.onclick=()=>{
     if(end===examQuestions.length){ finishExam(); }
     else { renderPage(page+1); window.scrollTo({top:0,behavior:"smooth"}); }
   };
-
   controls.appendChild(prev);
   controls.appendChild(next);
   area.appendChild(controls);
@@ -124,33 +134,30 @@ function finishExam(){
   area.innerHTML="";
 
   examQuestions.forEach((q,i)=>{
+    const ansIndex = getAnswerIndex(q);
+    const sel=examAnswers[i];
     const card=document.createElement("div");
     card.className="exam-card";
 
     const qtext=document.createElement("div");
     qtext.className="exam-qtext";
-    qtext.textContent=`${i+1}. ${removeNumberPrefix(q.text)}`;
+    qtext.textContent=`${i+1}. ${q.text}`;
     card.appendChild(qtext);
 
     const opts=document.createElement("div");
     opts.className="exam-options";
-
-    let ansIndex = (typeof q.answer === "number") ? q.answer-1 : 0;
-
     q.options.forEach((txt,idx)=>{
       const opt=document.createElement("div");
       opt.className="exam-opt";
       opt.textContent=txt;
-
       if(idx===ansIndex) opt.classList.add("correct");
-      if(examAnswers[i]===idx && idx!==ansIndex) opt.classList.add("wrong");
-
+      if(sel===idx && sel!==ansIndex) opt.classList.add("wrong");
       opts.appendChild(opt);
     });
-
-    if(examAnswers[i]===ansIndex) correct++;
     card.appendChild(opts);
     area.appendChild(card);
+
+    if(sel===ansIndex) correct++;
   });
 
   const passed=(correct>=PASS_SCORE);
@@ -165,7 +172,6 @@ function finishExam(){
     <button class="btn prev" style="margin-top:12px;" onclick="location.href='index.html'">Quiz-ə qayıt</button>
   `;
   area.prepend(result);
-  window.scrollTo({top:0,behavior:"smooth"});
 }
 
 loadExamQuestions();
