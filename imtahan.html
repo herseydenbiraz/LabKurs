@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="az">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Imtahan — Laboratoriya Kursu</title>
+  <style>
+    body { font-family:Arial, sans-serif; background:#f6f8fb; margin:0; padding:20px; }
+    .container { max-width:900px; margin:0 auto; }
+    .exam-card { background:#fff; padding:18px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.08); margin-bottom:15px; }
+    .exam-qtext { font-size:18px; font-weight:600; margin-bottom:10px; }
+    .exam-options { display:flex; flex-direction:column; gap:6px; }
+    .exam-opt { padding:10px; border:1px solid #ccc; border-radius:8px; cursor:pointer; background:#fafafa; }
+    .exam-opt.selected { background:#eef6ff; border-color:#2b6cb0; }
+    .exam-controls { display:flex; justify-content:space-between; align-items:center; margin-top:12px; }
+    .exam-result { text-align:center; font-size:18px; padding:20px; }
+    .btn { padding:8px 16px; border:none; border-radius:6px; cursor:pointer; font-weight:600; }
+    .btn.prev { background:#2b6cb0; color:#fff; }
+    .btn.next { background:#ffdd57; color:#111; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2 style="text-align:center;">🧪 İmtahan</h2>
+  <div id="examArea"></div>
+</div>
+
+<script>
+const EXAM_COUNT = 60;
+const PASS_SCORE = 40;
+let examQuestions = [];
+let examAnswers = {};
+let currentExamIndex = 0;
+
+async function loadExamQuestions(){
+  try {
+    const res = await fetch("questions.json");
+    if(!res.ok) throw new Error("Suallar tapılmadı");
+    const all = await res.json();
+    examQuestions = pickRandomQuestions(all, EXAM_COUNT);
+    renderExamQuestion(0);
+  } catch(err){
+    document.getElementById("examArea").innerHTML = "Xəta: " + err.message;
+  }
+}
+
+function pickRandomQuestions(arr,n){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a.slice(0,Math.min(n,a.length));
+}
+
+function renderExamQuestion(i){
+  const area=document.getElementById("examArea");
+  area.innerHTML="";
+  const q=examQuestions[i];
+  const card=document.createElement("div");
+  card.className="exam-card";
+
+  const qtext=document.createElement("div");
+  qtext.className="exam-qtext";
+  qtext.textContent=`${i+1}. ${q.text}`;
+  card.appendChild(qtext);
+
+  const opts=document.createElement("div");
+  opts.className="exam-options";
+  q.options.forEach((txt,idx)=>{
+    const opt=document.createElement("div");
+    opt.className="exam-opt";
+    if(examAnswers[i]===idx) opt.classList.add("selected");
+    opt.textContent=txt;
+    opt.onclick=()=>{
+      examAnswers[i]=idx;
+      [...opts.children].forEach(c=>c.classList.remove("selected"));
+      opt.classList.add("selected");
+    };
+    opts.appendChild(opt);
+  });
+  card.appendChild(opts);
+
+  const controls=document.createElement("div");
+  controls.className="exam-controls";
+  const prev=document.createElement("button");
+  prev.className="btn prev";
+  prev.textContent="Əvvəlki";
+  prev.disabled=(i===0);
+  prev.onclick=()=>{currentExamIndex--;renderExamQuestion(currentExamIndex)};
+  const next=document.createElement("button");
+  next.className="btn next";
+  next.textContent=(i===examQuestions.length-1)?"Bitir":"Sonrakı";
+  next.onclick=()=>{
+    if(i===examQuestions.length-1){finishExam();}
+    else{currentExamIndex++;renderExamQuestion(currentExamIndex);}
+  };
+  controls.appendChild(prev);
+  controls.appendChild(next);
+  card.appendChild(controls);
+
+  area.appendChild(card);
+}
+
+function finishExam(){
+  let correct=0;
+  examQuestions.forEach((q,i)=>{
+    const sel=examAnswers[i];
+    if(sel===undefined) return;
+    let ans=q.answer;
+    if(ans>=1 && ans<=q.options.length) ans=ans-1; // 1-based düzəlişi
+    if(sel===ans) correct++;
+  });
+  const passed=(correct>=PASS_SCORE);
+  document.getElementById("examArea").innerHTML=`
+    <div class="exam-card exam-result">
+      <div>İmtahan tamamlandı ✅</div>
+      <div>Xalınız: <strong>${correct}</strong> / ${examQuestions.length}</div>
+      <div style="color:${passed?'green':'red'};margin-top:8px;">
+        ${passed? 'Keçdiniz 🎉':'Keçmədiniz ❌'}
+      </div>
+      <button class="btn prev" style="margin-top:12px;" onclick="location.href='index.html'">Quiz-ə qayıt</button>
+    </div>
+  `;
+}
+
+loadExamQuestions();
+</script>
+</body>
+</html>
