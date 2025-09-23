@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="az">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Suallar — Cavablarla</title>
+  <style>
+    body {font-family: Arial, sans-serif; background:#f6f8fb; margin:0; padding:20px; color:#111;}
+    .container{max-width:900px;margin:0 auto;}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+    .title{font-size:22px;font-weight:700;color:#2b6cb0;}
+    .home-btn{background:#2b6cb0;padding:6px 12px;border-radius:6px;font-weight:700;color:#fff;text-decoration:none;}
+    .card{background:#fff;padding:15px;margin-bottom:15px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+    .q-text{font-size:18px;font-weight:600;margin-bottom:10px;}
+    .options{display:flex;flex-direction:column;gap:6px;}
+    .opt{display:flex;align-items:center;padding:10px;border-radius:8px;border:1px solid #ccc;background:#f9f9f9;}
+    .opt.correct{background:#008000;color:#fff;border-color:#008000;}
+    .letter{font-weight:bold;margin-right:10px;width:22px;text-align:center;}
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="title">📘 Suallar (Cavablarla)</div>
+    <a href="index.html" class="home-btn">Ana Səhifə</a>
+  </header>
+
+  <div id="quizArea"></div>
+</div>
+
+<script>
+let questions = [];
+
+async function loadQuestions(){
+  try {
+    const res = await fetch("https://winter-darkness-2c14.herseydenbiraz4k.workers.dev/");
+    if(!res.ok) throw new Error("Suallar tapılmadı: " + res.status);
+    let all = await res.json();
+
+    // sıra nömrəsi əlavə et və 60 sual seç
+    all = all.map(q=>({...q, text:q.text.replace(/^\d+\.\s*/, "")}));
+    questions = all.slice(0,60).map((q,i)=>({...q, text:(i+1)+". "+q.text}));
+
+    renderQuiz();
+  } catch(err){
+    document.getElementById("quizArea").innerHTML = "Xəta: " + err.message;
+    console.error(err);
+  }
+}
+loadQuestions();
+
+function renderQuiz(){
+  const area=document.getElementById("quizArea");
+  area.innerHTML="";
+  questions.forEach((q,i)=>{
+    const card=document.createElement("div");
+    card.className="card";
+
+    const qtext=document.createElement("div");
+    qtext.className="q-text";
+    qtext.innerHTML=q.text;
+
+    const opts=document.createElement("div");
+    opts.className="options";
+
+    q.options.forEach((txt,idx)=>{
+      const opt=document.createElement("div");
+      opt.className="opt";
+      if(idx===q.answer) opt.classList.add("correct"); // ✅ doğru cavabı işarələ
+
+      const letter=document.createElement("div");
+      letter.className="letter";
+      letter.textContent=String.fromCharCode(65+idx);
+
+      const span=document.createElement("div");
+      span.textContent=txt;
+
+      opt.appendChild(letter);
+      opt.appendChild(span);
+      opts.appendChild(opt);
+    });
+
+    card.appendChild(qtext);
+    card.appendChild(opts);
+    area.appendChild(card);
+  });
+}
+</script>
+  <footer style="
+  margin-top:100px;
+  padding:18px;
+  text-align:center;
+  font-family:'Trebuchet MS', sans-serif;
+  background:#fff;
+  border-top:2px dashed #ccc;
+  color:#333;
+  font-size:14px;
+">
+  <span style="opacity:0.8;">Built & Designed by</span>  
+  <strong style="color:#2b6cb0;">Dr. Ibrahimov</strong> ⚡  
+  <div style="margin-top:6px; font-size:12px; opacity:0.6;">
+    © 2025 — Laboratory Course
+  </div>
+</footer>
+</body>
+</html>
