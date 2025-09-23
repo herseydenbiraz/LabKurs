@@ -16,45 +16,71 @@
       -ms-user-select: none;
       user-select: none;
     }
-    .container{max-width:900px;margin:0 auto;}
-    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
-    .title{font-size:22px;font-weight:700;color:#2b6cb0;  margin-bottom: 10px;
+   .container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 10px;
 }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap; /* kiçik ekran üçün uyumlu */
+  gap: 10px;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2b6cb0;
+}
+
 .nav-buttons {
   display: flex;
   gap: 10px;
-  flex-wrap: wrap; /* kiçik ekranda sətirdən aşağı düşsün */
-  justify-content: center;
-  margin: 10px 0;
+  flex-wrap: wrap;
 }
 
 .nav-buttons a {
-  flex: 1; /* hər biri bərabər ölçüdə olsun */
-  min-width: 100px;
-  text-align: center;
-  padding: 10px;
+  padding: 10px 16px;
   border-radius: 6px;
   text-decoration: none;
   font-size: 14px;
   font-weight: bold;
+  text-align: center;
+  transition: 0.2s;
 }
 
 .nav-buttons a.blue {
   background: #007bff;
-  color: white;
+  color: #fff;
 }
 
 .nav-buttons a.red {
   background: #dc3545;
-  color: white;
+  color: #fff;
 }
 
-/* Mobil ekran üçün xüsusi qayda */
+.nav-buttons a:hover {
+  opacity: 0.9;
+}
+
+/* Mobil görünüş */
 @media (max-width: 600px) {
-  .nav-buttons {
-    flex-direction: column; /* mobil ekranda alt-alta */
-    align-items: stretch;
+  .header {
+    flex-direction: column;
+    align-items: center;
   }
+  .nav-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+  .nav-buttons a {
+    width: 100%;
+  }
+}
 }    .card{background:#fff;padding:15px;margin-bottom:15px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
     .q-text{font-size:18px;font-weight:600;margin-bottom:10px;}
     .options{display:flex;flex-direction:column;gap:6px;}
@@ -87,13 +113,14 @@
 </div>
 
 <div class="container">
-  <header>
-    <div class="title">📘Laboratoriya Kursu </div>
-    <div style="display:flex;gap:10px;">
+  <header class="header">
+    <div class="title">📘 Laboratoriya Kursu</div>
+    <nav class="nav-buttons">
       <a href="cavablar.html" class="blue">Suallar (Cavablarla)</a>
-      <a href="imtahan.html" class="red" style="background:#ff6666;">İmtahan</a>
-    </div>
+      <a href="imtahan.html" class="red">İmtahan</a>
+    </nav>
   </header>
+</div>
 
   <div id="quizArea"></div>
 
